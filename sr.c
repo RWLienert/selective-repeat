@@ -5,8 +5,7 @@
 #include "gbn.h"
 
 /* ******************************************************************
-   Go Back N protocol.  Adapted from J.F.Kurose
-   ALTERNATING BIT AND GO-BACK-N NETWORK EMULATOR: VERSION 1.2  
+   Selective Repeat protocol.
 
    Network properties:
    - one way network delay averages five time units (longer if there
@@ -16,10 +15,8 @@
    - packets will be delivered in the order in which they were sent
    (although some can be lost).
 
-   Modifications: 
-   - removed bidirectional GBN code and other code not used by prac. 
-   - fixed C style to adhere to current programming style
-   - added GBN implementation
+   Modifications:
+   - added SR implementation
 **********************************************************************/
 
 #define RTT  16.0       /* round trip time.  MUST BE SET TO 16.0 when submitting assignment */
@@ -57,6 +54,7 @@ bool IsCorrupted(struct pkt packet)
 /********* Sender (A) variables and functions ************/
 
 static struct pkt buffer[WINDOWSIZE];  /* array for storing packets waiting for ACK */
+static bool ackedpkts[SEQSPACE];     /* array for */
 static int windowfirst, windowlast;    /* array indexes of the first/last packet awaiting ACK */
 static int windowcount;                /* the number of packets currently awaiting an ACK */
 static int A_nextseqnum;               /* the next sequence number to be used by the sender */
@@ -133,20 +131,17 @@ void A_input(struct pkt packet)
               printf("----A: ACK %d is not a duplicate\n",packet.acknum);
             new_ACKs++;
 
-            /* cumulative acknowledgement - determine how many packets are ACKed */
-            if (packet.acknum >= seqfirst)
-              ackcount = packet.acknum + 1 - seqfirst;
-            else
-              ackcount = SEQSPACE - seqfirst + packet.acknum;
+            /* individual ACK per packet */
+            ackedpkts[packet.acknum] = true;
 
-	    /* slide window by the number of packets ACKed */
-            windowfirst = (windowfirst + ackcount) % WINDOWSIZE;
+	          /* slide window if oldest packet has been ACKed (continue until the program hits an unACKed packet) Also reset ackedpacket array and windoe count */
+            while (windowcount > 0 && ackedpkts[buffer[windowfirst].seqnum]) {
+                ackedpkts[buffer[windowfirst].seqnum] = false;
+                windowfirst = (windowfirst + 1) % WINDOWSIZE;
+                windowcount--;
+            }
 
-            /* delete the acked packets from window buffer */
-            for (i=0; i<ackcount; i++)
-              windowcount--;
-
-	    /* start timer again if there are still more unacked packets in window */
+	          /* start timer again if there are still more unacked packets in window */
             stoptimer(A);
             if (windowcount > 0)
               starttimer(A, RTT);
@@ -187,7 +182,7 @@ void A_timerinterrupt(void)
 /* entity A routines are called. You can use it to do any initialization */
 void A_init(void)
 {
-  /* initialise A's window, buffer and sequence number */
+  /* initialise A's window, buffer, sequence number and ackedpkts array */
   A_nextseqnum = 0;  /* A starts with seq num 0, do not change this */
   windowfirst = 0;
   windowlast = -1;   /* windowlast is where the last packet sent is stored.  
@@ -195,6 +190,7 @@ void A_init(void)
 		     so initially this is set to -1
 		   */
   windowcount = 0;
+  ackedpkts[SEQSPACE] = false;
 }
 
 
