@@ -207,7 +207,7 @@ void B_input(struct pkt packet)
   int i;
 
   /* if not corrupted */
-  if  ( (!IsCorrupted(packet))) {
+  if  (!IsCorrupted(packet)) {
     if (TRACE > 0)
       printf("----B: packet %d is correctly received, send ACK!\n",packet.seqnum);
     packets_received++;
@@ -224,17 +224,17 @@ void B_input(struct pkt packet)
       B_buffer[packet.seqnum] = packet;
       B_ackedpkts[packet.seqnum] = true;
 
-      /* send an ACK for the received packet */
-      sendpkt.acknum = recvbase;
-
       /* update receive base upon ACK status of oldest packet */
-      while (B_ackedpkts[recvbase] == true && recvbase < recvend) {
+      while (B_ackedpkts[recvbase] == true) {
         /* deliver to receiving application */
-        tolayer5(B, packet.payload);
-
+        tolayer5(B, B_buffer[recvbase].payload);
+        B_ackedpkts[recvbase] = false;
         recvbase = (recvbase + 1) % SEQSPACE;
       }
-    }      
+    }
+
+    /* send an ACK for the received packet */
+    sendpkt.acknum = packet.seqnum;
   }
   else {
     /* packet is corrupted */
