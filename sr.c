@@ -197,9 +197,7 @@ void A_init(void)
 
 static struct pkt B_buffer[SEQSPACE];  /* array for storing packets that have been received and ACKed */
 static bool B_ackedpkts[SEQSPACE];     /* array for keep track of which ACKs have been buffered vs. received */
-static int B_windowfirst, B_windowlast;    /* array indexes of the first/last elements in the window */
-static int expectedseqnum; /* the sequence number expected next by the receiver */
-static int B_nextseqnum;   /* the sequence number for the next packets sent by B */
+static int recvbase;  /* the sequence number expected next by the receiver */
 
 /* called from layer 3, when a packet arrives for layer 4 at B*/
 void B_input(struct pkt packet)
@@ -207,8 +205,8 @@ void B_input(struct pkt packet)
   struct pkt sendpkt;
   int i;
 
-  /* if not corrupted and received packet is in order */
-  if  ( (!IsCorrupted(packet))  && (packet.seqnum == expectedseqnum) ) {
+  /* if not corrupted */
+  if  ( (!IsCorrupted(packet))) {
     if (TRACE > 0)
       printf("----B: packet %d is correctly received, send ACK!\n",packet.seqnum);
     packets_received++;
@@ -251,8 +249,10 @@ void B_input(struct pkt packet)
 /* entity B routines are called. You can use it to do any initialization */
 void B_init(void)
 {
-  expectedseqnum = 0;
-  B_nextseqnum = 1;
+  recv_base = 0; 
+  for (int i = 0; i < SEQSPACE; i++) {
+    B_ackedpkts[i] = false;
+  }
 }
 
 /******************************************************************************
