@@ -216,7 +216,11 @@ void B_input(struct pkt packet)
     int recvend = (recvbase + WINDOWSIZE) % SEQSPACE;
 
     // Checks if the received packet is within the receive window
-    if ((packet.seqnum >= recvbase && packet.seqnum < recvend) || (packet.seqnum >= recvbase || packet.seqnum < recvend)) {
+    int inwindow = (recvbase <= recvend)
+        ? (packet.seqnum >= recvbase && packet.seqnum < recvend)
+        : (packet.seqnum >= recvbase || packet.seqnum < recvend);
+
+    if (inwindow) {
       B_buffer[packet.seqnum] = packet;
       B_ackedpkts[packet.seqnum] = true;
 
