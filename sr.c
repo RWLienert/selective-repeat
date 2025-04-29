@@ -198,6 +198,7 @@ void A_init(void)
 static struct pkt B_buffer[SEQSPACE];  /* array for storing packets that have been received and ACKed */
 static bool B_ackedpkts[SEQSPACE];     /* array for keep track of which ACKs have been buffered vs. received */
 static int recvbase;  /* the sequence number expected next by the receiver */
+static int B_nextseqnum;   /* the sequence number for the next packets sent by B */
 
 /* called from layer 3, when a packet arrives for layer 4 at B*/
 void B_input(struct pkt packet)
@@ -211,23 +212,30 @@ void B_input(struct pkt packet)
       printf("----B: packet %d is correctly received, send ACK!\n",packet.seqnum);
     packets_received++;
 
-    /* deliver to receiving application */
-    tolayer5(B, packet.payload);
+    // Tracks index of the end of the window
+    int recvend = (recvbase + WINDOWSIZE) % SEQSPACE;
 
-    /* send an ACK for the received packet */
-    sendpkt.acknum = expectedseqnum;
+    // Checks if the received packet is within the receive window
+    if ((packet.seqnum >= recvbase && packet.seqnum < recvend) || (packet.seqnum >= recvbase || packet.seqnum < recvend)) {
+      B_buffer[packet.seqnum] = packet;
+      B_ackedpkts[packet.seqnum] = true;
 
-    /* update state variables */
-    expectedseqnum = (expectedseqnum + 1) % SEQSPACE;        
+      /* send an ACK for the received packet */
+      sendpkt.acknum = recvbase;
+
+      /* update receive base upon ACK status of oldest packet */
+      while (B_ackedpkts[recvbase] == true && recvbase < recvend) {
+        /* deliver to receiving application */
+        tolayer5(B, packet.payload);
+
+        recvbase = (recvbase + 1) % SEQSPACE;
+      }
+    }      
   }
   else {
-    /* packet is corrupted or out of order resend last ACK */
+    /* packet is corrupted */
     if (TRACE > 0) 
-      printf("----B: packet corrupted or not expected sequence number, resend ACK!\n");
-    if (expectedseqnum == 0)
-      sendpkt.acknum = SEQSPACE - 1;
-    else
-      sendpkt.acknum = expectedseqnum - 1;
+      printf("----B: packet corrupted!\n");
   }
 
   /* create packet */
@@ -249,10 +257,11 @@ void B_input(struct pkt packet)
 /* entity B routines are called. You can use it to do any initialization */
 void B_init(void)
 {
-  recv_base = 0; 
   for (int i = 0; i < SEQSPACE; i++) {
     B_ackedpkts[i] = false;
   }
+  recvbase = 0;
+  B_nextseqnum = 1;
 }
 
 /******************************************************************************
