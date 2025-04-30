@@ -109,9 +109,6 @@ void A_output(struct msg message)
 */
 void A_input(struct pkt packet)
 {
-  int ackcount = 0;
-  int i;
-
   /* if received ACK is not corrupted */ 
   if (!IsCorrupted(packet)) {
     if (TRACE > 0)
@@ -160,7 +157,7 @@ void A_input(struct pkt packet)
 /* called when A's timer goes off */
 void A_timerinterrupt(void)
 {
-  // As only one timer is available only the oldest unACKed packet is retransmitted
+  /* As only one timer is available only the oldest unACKed packet is retransmitted */
   if (TRACE > 0)
     printf("----A: time out,resend packets!\n");
 
@@ -178,6 +175,8 @@ void A_timerinterrupt(void)
 /* entity A routines are called. You can use it to do any initialization */
 void A_init(void)
 {
+  int i;
+
   /* initialise A's window, buffer, sequence number and ackedpkts array */
   A_nextseqnum = 0;  /* A starts with seq num 0, do not change this */
   A_windowfirst = 0;
@@ -186,8 +185,9 @@ void A_init(void)
 		     so initially this is set to -1
 		   */
   A_windowcount = 0;
-  for (int i = 0; i < SEQSPACE; i++) {
-    A_ackedpkts[i] = false;
+
+  for (i = 0; i < SEQSPACE; i++) {
+    A_ackedpkts[i] = false;   /* initialises acked packets array with false */
   }
 }
 
@@ -205,6 +205,8 @@ void B_input(struct pkt packet)
 {
   struct pkt sendpkt;
   int i;
+  int recvend;
+  int inwindow;
 
   /* if not corrupted */
   if  (!IsCorrupted(packet)) {
@@ -212,11 +214,11 @@ void B_input(struct pkt packet)
       printf("----B: packet %d is correctly received, send ACK!\n",packet.seqnum);
     packets_received++;
 
-    // Tracks index of the end of the window
-    int recvend = (recvbase + WINDOWSIZE) % SEQSPACE;
+    /* Tracks index of the end of the window */
+    recvend = (recvbase + WINDOWSIZE) % SEQSPACE;
 
-    // Checks if the received packet is within the receive window
-    int inwindow = (recvbase <= recvend)
+    /* Checks if the received packet is within the receive window */
+    inwindow = (recvbase <= recvend)
         ? (packet.seqnum >= recvbase && packet.seqnum < recvend)
         : (packet.seqnum >= recvbase || packet.seqnum < recvend);
 
@@ -261,11 +263,14 @@ void B_input(struct pkt packet)
 /* entity B routines are called. You can use it to do any initialization */
 void B_init(void)
 {
-  for (int i = 0; i < SEQSPACE; i++) {
-    B_ackedpkts[i] = false;
+  int i;
+
+  recvbase = 0;   /* Recvbase starts at 0 and tracks the beginning of the receiver's window */
+  B_nextseqnum = 1;   /* Holds data for what sequence is expected next which is 1 (after base 0) */
+
+  for (i = 0; i < SEQSPACE; i++) {
+    B_ackedpkts[i] = false;   /* Initialises acked packets array to false */
   }
-  recvbase = 0;
-  B_nextseqnum = 1;
 }
 
 /******************************************************************************
