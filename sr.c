@@ -113,10 +113,10 @@ void A_input(struct pkt packet)
   if (!IsCorrupted(packet)) {
     /* Resend packet if NACK is found */
     if (packet.acknum == -1) {
-      if (TRACE > 0)
+      if (TRACE == 1)
         printf("----A: NACK received, resend packet!\n");
 
-      if (TRACE > 0)
+      if (TRACE == 1)
         printf ("---A: resending packet %d\n", (packet.seqnum));
 
       tolayer3(A,A_buffer[packet.seqnum]);
@@ -263,7 +263,7 @@ void B_input(struct pkt packet)
   else {
     /* packet is corrupted */
     if (TRACE > 0) 
-      printf("----B: packet corrupted, sending NACK for seq %d!\n", packet.seqnum);
+      printf("----B: packet corrupted or not expected sequence number, resend ACK!\n");
 
     /* create packet */
     sendpkt.acknum = -1;   /* NACK identifier */
