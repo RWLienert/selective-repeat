@@ -143,16 +143,12 @@ void A_input(struct pkt packet)
             A_windowcount--;
         }
 
-        /* start timer again if there are still more unacked packets in window */
-        if (A_windowfirst != old_windowfirst) {
-          stoptimer(A);
-          if (A_windowcount > 0)
-            starttimer(A, RTT);
-        }
-
-        /* After all packets have been processed stop the timer */
+        /* After all packets have been processed stop the timer or start timer again if there are still more unacked packets in window */
         if (A_windowcount == 0) {
           stoptimer(A);
+        } else if (A_windowfirst != old_windowfirst) {
+          stoptimer(A);
+          starttimer(A, RTT);
         }
 
       }
