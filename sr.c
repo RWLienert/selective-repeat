@@ -109,8 +109,28 @@ void A_output(struct msg message)
 */
 void A_input(struct pkt packet)
 {
-  /* if received ACK is not corrupted */ 
+  /* if received packet is not corrupted */ 
   if (!IsCorrupted(packet)) {
+    /* Resend packet if NACK is found */
+    if (packet.acknum == -1) {
+      if (TRACE > 0)
+        printf("----A: NACK received, resend packet!\n");
+
+      if (TRACE > 0)
+        printf ("---A: resending packet %d\n", (packet.seqnum));
+
+      tolayer3(A,A_buffer[packet.seqnum]);
+      packets_resent++;
+
+      /* Restart timer if the resent packet is the oldest unACKed packet in window */
+      if (packet.seqnum == A_buffer[A_windowfirst].seqnum) {
+        stoptimer(A);
+        starttimer(A,RTT);
+      }
+
+      return; /* Don't continue if NACK is received */
+    }
+
     if (TRACE > 0)
       printf("----A: uncorrupted ACK %d is received\n",packet.acknum);
     total_ACKs_received++;
@@ -235,22 +255,24 @@ void B_input(struct pkt packet)
       }
     }
 
-    /* send an ACK for the received packet */
+    /* create packet */
     sendpkt.acknum = packet.seqnum;
+    sendpkt.seqnum = B_nextseqnum;
+    B_nextseqnum = (B_nextseqnum + 1) % 2;
   }
   else {
     /* packet is corrupted */
     if (TRACE > 0) 
-      printf("----B: packet corrupted!\n");
-  }
+      printf("----B: packet corrupted, sending NACK for seq %d!\n", packet.seqnum);
 
-  /* create packet */
-  sendpkt.seqnum = B_nextseqnum;
-  B_nextseqnum = (B_nextseqnum + 1) % 2;
+    /* create packet */
+    sendpkt.acknum = -1;   /* NACK identifier */
+    sendpkt.seqnum = packet.seqnum;   /* Alert A which seqnum was corrupted */
+  }
     
   /* we don't have any data to send.  fill payload with 0's */
   for ( i=0; i<20 ; i++ ) 
-    sendpkt.payload[i] = '0';  
+    sendpkt.payload[i] = '0';
 
   /* computer checksum */
   sendpkt.checksum = ComputeChecksum(sendpkt); 
