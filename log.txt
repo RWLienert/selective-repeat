@@ -1,3 +1,15 @@
+commit a30be51ed2b3b1078ff8f39cd73b4fd0231bd11c
+Author: RWLienert <rileylienert@gmail.com>
+Date:   Thu May 1 23:27:26 2025 +0930
+
+    Fixed a bug that occured at specific settings where a lost packet left by itself would not stop the timer and begin an infinite loop. Fixed by adding an if statement. Also improved general comments
+
+commit e619518fa7779105bada6cfcd0efb36341842895
+Author: RWLienert <rileylienert@gmail.com>
+Date:   Thu May 1 14:45:06 2025 +0930
+
+    Added new change and thus updated the git log file
+
 commit 244ac127e6a2f7a91438b83bb537d3f312ebc5b7
 Author: RWLienert <rileylienert@gmail.com>
 Date:   Thu May 1 14:43:55 2025 +0930
