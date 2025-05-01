@@ -1,0 +1,65 @@
+commit 89d9e83e881f4916682f764acd540c57103328ab
+Author: RWLienert <rileylienert@gmail.com>
+Date:   Thu May 1 14:04:37 2025 +0930
+
+    Reformatted the debug statements to make sure no additional responses are added/removed/changed when the trace level is 2 or 3
+
+commit 658437a6593fc3930c329d971ecb6eb9dbda61aa
+Author: RWLienert <rileylienert@gmail.com>
+Date:   Thu May 1 10:39:58 2025 +0930
+
+    Implemented code in B to send NACK if corrupted data is received. Now A can resend immediately
+
+commit cba66a01b42eb3ef5eac7dfdad617d80a0adfe1a
+Author: RWLienert <rileylienert@gmail.com>
+Date:   Thu May 1 09:08:48 2025 +0930
+
+    Restructured code to meet the specifications of C90. This involved moving initialisation of variables to the top of each function and out of for loops
+
+commit ec592f4b074478e240a8074efcce3fead26c5e63
+Author: RWLienert <rileylienert@gmail.com>
+Date:   Tue Apr 29 17:10:06 2025 +0930
+
+    Fixed bug where sendpkt.acknum is set to recvbase rather than the current packet that has been received. Similar bug was fixed where I was pushing the current packet payload to the user rather than the value at the start of buffer that has been ACKed
+
+commit e3122a6915fb529c1b054b4f39e55bd3050f2fbc
+Author: RWLienert <rileylienert@gmail.com>
+Date:   Tue Apr 29 16:54:46 2025 +0930
+
+    Improved the inwindow logic as it was incorrect and made the packet almost always true due to an error. Also makes code more readable now
+
+commit 92ad476db4f872fc67b8638791e8a96189823d07
+Author: RWLienert <rileylienert@gmail.com>
+Date:   Tue Apr 29 16:46:49 2025 +0930
+
+    Altered the B_input code to control the sliding window based on recvbase and the window size. It can now buffer packets on the receiver side until the oldest packet is ACKed
+
+commit 00e35482ec7eb64807cb01ec980b6c1821f10abf
+Author: RWLienert <rileylienert@gmail.com>
+Date:   Tue Apr 29 16:11:40 2025 +0930
+
+    Changed required variables for B. Only a buffer, array for ACKs and a recvbase are needed. The window size can be calculated accordingly using the window size and sequence space
+
+commit 757c9160a9bd949fe5e252295ab41ec36b16fa2b
+Author: RWLienert <rileylienert@gmail.com>
+Date:   Tue Apr 29 15:53:26 2025 +0930
+
+    Separated variables into A and B such that a buffer and array for B can be created under similar naming conventions. Beginning implementation of B_input
+
+commit 4e23c4ac9de3086ddf396ca08e8a17a5d52cec6e
+Author: RWLienert <rileylienert@gmail.com>
+Date:   Tue Apr 29 15:18:01 2025 +0930
+
+    Added logic into A_input to store individual ACKs within the current window in an array. Logic also moves the slide window forward based on whether the latest packets have been ACKed, rather than using a culmative ACK approach like GBN
+
+commit 3c83e7b015ac4d9add6323a81e331d5dcd0cfe54
+Author: RWLienert <rileylienert@gmail.com>
+Date:   Tue Apr 29 11:03:55 2025 +0930
+
+    Created new files for the selective repeat protocol and initialised them with the gbn code to begin
+
+commit 1376741ed44248a24112bc1d553e9a99e4326ba4
+Author: RWLienert <rileylienert@gmail.com>
+Date:   Tue Apr 29 09:08:05 2025 +0930
+
+    Initialised the git repository with the given files
