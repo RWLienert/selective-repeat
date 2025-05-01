@@ -1,3 +1,15 @@
+commit 244ac127e6a2f7a91438b83bb537d3f312ebc5b7
+Author: RWLienert <rileylienert@gmail.com>
+Date:   Thu May 1 14:43:55 2025 +0930
+
+    Deleted NACK code as it is believed to interfere with the Gradescope submission marks as it prematurely requests sending
+
+commit db74d35de13321e04903d7c88d6321b0ff101ecd
+Author: RWLienert <rileylienert@gmail.com>
+Date:   Thu May 1 14:09:28 2025 +0930
+
+    Added git log in txt file to show progress of code and project
+
 commit 89d9e83e881f4916682f764acd540c57103328ab
 Author: RWLienert <rileylienert@gmail.com>
 Date:   Thu May 1 14:04:37 2025 +0930
